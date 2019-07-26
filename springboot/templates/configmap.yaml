@@ -1,0 +1,10 @@
+# Create configmap from values.yaml
+{{- if .Values.env.configMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.appName }}-env-configmap
+  namespace: {{ .Values.namespace }}
+data:
+{{ toYaml .Values.env.configMap | indent 2}}
+{{- end }}

@@ -1,0 +1,16 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.ingress.name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    ingress.kubernetes.io/rewrite-target: /
+    #nginx.org/server-snippet: "proxy_ssl_verify off;"
+spec:
+  rules:
+{{ toYaml .Values.ingress.rules | indent 2 }}
+{{- end}}
+
+  

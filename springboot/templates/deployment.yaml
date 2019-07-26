@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+      - name: {{ .Values.appName }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.hasSecretVolume }}
+        volumeMounts:
+        - name: {{ .Values.appName }}-volume-sec
+          mountPath: {{ .Values.secretVolumeMountPath }}
+        {{- end}}
+        {{- if or .Values.env.configMap .Values.env.secrets }}
+        envFrom:
+        {{- if .Values.env.configMap }}
+        - configMapRef:
+            name: {{ .Values.appName }}-env-configmap
+        {{- end }}
+        {{- if .Values.env.secrets }}
+        - secretRef:
+            name: {{ .Values.appName }}-env-secret
+        {{- end }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.containerPort }}
+          protocol: TCP
+{{- if .Values.springContainerHealthChecks}}
+{{ toYaml .Values.springContainerHealthChecks | indent 8 }}
+{{- end}}
+      {{- if .Values.hasSecretVolume }}
+      volumes:
+      - name: {{ .Values.appName }}-volume-sec
+        secret:
+          secretName: {{ .Values.appName }}-volume-sec
+      {{- end}}
+      {{- if .Values.imageCredentials}}
+      imagePullSecrets:
+      - name: {{.Values.imageCredentials.secretName}}
+      {{- end}}

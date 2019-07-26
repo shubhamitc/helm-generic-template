@@ -1,0 +1,79 @@
+# Default values for mfpro-auth.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Generic properties
+namespace: qa
+replicaCount: 1
+ingressEnabled: true
+appName: my-first-boot
+containerPort: 8080
+hasSecretVolume: true
+secretVolumeMountPath: /opt/appConfig
+
+# Images
+image:
+  repository: my-first-boot/auth
+  tag: v1
+  pullPolicy: Always
+  pullSecrets: regcred
+
+# Image creds
+imageCredentials:
+  secretName: regcred
+  registry: hub.docker.com
+  username: abcd
+  password: password
+  docker-email: shubhamkr619@gmail.com
+# ----------------------------------------
+
+env:
+  configMap:
+    JAVA_OPTS: -Dlogging.config=file:/opt/appConfig/logback.xml -Dspring.config.location=/opt/appConfig/application-qa.properties -Dspring.profiles.active=qa -Dspring.hikaricp.config.location=/opt/appConfig/
+  secrets:
+    APPLICATION_NAME: my-first-boot
+
+# Container liveness and readyness
+springContainerHealthChecks:
+  livenessProbe:
+    httpGet:
+      path: /api/auth/ping
+      port: 8080
+    initialDelaySeconds: 180
+    timeoutSeconds: 1
+    periodSeconds: 15
+  readinessProbe:
+    httpGet:
+      path: /api/auth/ping
+      port: 8080
+    initialDelaySeconds: 180
+    timeoutSeconds: 1
+    periodSeconds: 15
+
+# Nginx ingress settings
+controller:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+  service: 
+    enableHttp: true
+  stats:
+    enabled: true
+  metrics:
+    enabled: true
+
+
+# Cybrila ingress settings
+ingress:
+  enabled: true
+  name: my-first-boot
+  rules:
+    - host: my-first-boot
+      http:
+        paths:
+        - path: /api/auth
+          backend:
+            serviceName: my-first-boot-entrypoint
+            servicePort: 80
+

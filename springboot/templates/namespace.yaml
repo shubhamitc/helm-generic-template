@@ -1,0 +1,10 @@
+# Important while using `helm template | kubectl apply -f - `, commented in favor of helm install 
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   labels:
+#     name: {{ .Values.namespace }}
+#   name: {{ .Values.namespace }}
+# spec:
+#   finalizers:
+#   - kubernetes
