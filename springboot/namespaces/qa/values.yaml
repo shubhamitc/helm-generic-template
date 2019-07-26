@@ -6,7 +6,7 @@
 namespace: qa
 replicaCount: 1
 ingressEnabled: true
-appName: my-first-boot
+appName: my-boot-service
 containerPort: 8080
 hasSecretVolume: true
 secretVolumeMountPath: /opt/appConfig
@@ -31,7 +31,7 @@ env:
   configMap:
     JAVA_OPTS: -Dlogging.config=file:/opt/appConfig/logback.xml -Dspring.config.location=/opt/appConfig/application-qa.properties -Dspring.profiles.active=qa -Dspring.hikaricp.config.location=/opt/appConfig/
   secrets:
-    APPLICATION_NAME: my-first-boot
+    APPLICATION_NAME: my-boot-service
 
 # Container liveness and readyness
 springContainerHealthChecks:
@@ -64,16 +64,16 @@ controller:
     enabled: true
 
 
-# Cybrila ingress settings
+# ingress settings
 ingress:
   enabled: true
-  name: my-first-boot
+  name: my-boot-service
   rules:
-    - host: my-first-boot
+    - host: my-boot-service
       http:
         paths:
         - path: /api/auth
           backend:
-            serviceName: my-first-boot-entrypoint
+            serviceName: my-boot-service-entrypoint
             servicePort: 80
 
