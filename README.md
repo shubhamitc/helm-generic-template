@@ -1,6 +1,6 @@
 With dramatically increasing demand of container orchestration specifically Kubernetes, demand to templatise K8S manifests(Json/Yaml) also came to light. To handle increasing manifests, new CRDs(Custom resource definition), etc... it became obvious that we need a package manager somewhat like yum, apt, etc... However nature of Kubernetes manifest are very different than what one used to have with Yum and Apt. These manifests required a lot of templating which is now supported by Helm, a tool written in GoLang with custom helm functions and pipelines.
 ### Neutral background on templating
-Templating has been a driver for configuration management for a long time. While it may seem trivial for users coming from Ansible, Chef, Puppet, Salt, etc..., it is not. Once one moves to Kubernetes, first realisation is hard declarative approach that Kubernetes follows. It is difficult to make generic templating with declarative form since each application may have some unique feature and requirements. Users have been subjected to duplicate the manifests.
+Templating has been a driver for configuration management for a long time. While it may seem trivial for users coming from Ansible, Chef, Puppet, Salt, etc..., it is not. Once one moves to Kubernetes, first realization is hard declarative approach that Kubernetes follows. It is difficult to make generic templating with declarative form since each application may have some unique feature and requirements. Users have been subjected to duplicate the manifests.
 
 # Helm features ([Helm feature Credits](https://helm.sh/))
 - Client side only, Helm currently support command `helm` which users can use in same manner as kubectl 
@@ -17,10 +17,10 @@ A lot of applications are built on top of JAVA's Springboot, a MVC framework des
 2. Compiled jar file 
 3. Other property files if any(Optional)
 All of these components have to be understood for management. One can use spring configuration servers as well to manage the configuration, however in this excercise we are going to focus on helm based approach to manage all the secrets. 
-# Helm approach (Considering stateless application)
+# Helm approach (Stateless application)
 Now we want to deploy an application using helm package manager - one common questions is, what we need to do to achieve that? Let's answer it:
 1. Package the code using Dockerfile - Make sure that packaged code is environment agnostic, however it is not a requirement for Helm to work
-2. Define application.property/yaml file - See if one wants to manage it with helm, in my opnion SRE/DevOps teams prefer to keep it separate for different environments in different repository.
+2. Define application.property/yaml file - See if one wants to manage it with helm, in my opinion SRE/DevOps teams prefer to keep it separate for different environments in different repository.
 3. Identify environment variables that needs to be injected into container
 4. Identify volumes(secret volume) that needs to be injected 
 
