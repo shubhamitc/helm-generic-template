@@ -1,33 +1,33 @@
-With dramatically increasing demand of container orchestration specifically Kubernetes, demand to templatise K8S manifests(Json/Yaml) also came to light. To handle increasing manifests, new CRDs(Custom resource definition), etc... it became obvious that we need a package manager somewhat like yum, apt, etc... However nature of Kubernetes manifest are very different than what one used to have with Yum and Apt. These manifests required a lot of templating which is now supported by Helm, a tool written in GoLang with custom helm functions and pipelines.
+With the dramatically increasing demand for container orchestration specifically Kubernetes, demand to template K8S manifests(Json/Yaml) also came to light. To handle increasing manifests, new CRDs(Custom resource definition), etc… it became obvious that we need a package manager somewhat like yum, apt, etc… However, the nature of Kubernetes manifest is very different than what one used to have with Yum and Apt. These manifests required a lot of templates which is now supported by Helm, a tool written in GoLang with custom helm functions and pipelines.
 ### Neutral background on templating
-Templating has been a driver for configuration management for a long time. While it may seem trivial for users coming from Ansible, Chef, Puppet, Salt, etc..., it is not. Once one moves to Kubernetes, first realization is hard declarative approach that Kubernetes follows. It is difficult to make generic templating with declarative form since each application may have some unique feature and requirements. Users have been subjected to duplicate the manifests.
+Templating has been a driver for configuration management for a long time. While it may seem trivial for users coming from Ansible, Chef, Puppet, Salt, etc…, it is not. Once one moves to Kubernetes, the very first realization is hard declarative approach that Kubernetes follows. It is difficult to make generic templating with declarative form since each application may have some unique feature and requirements. Users have been subjected to duplicate the manifests.
 
 # Helm features ([Helm feature Credits](https://helm.sh/))
-- Client side only, Helm currently support command `helm` which users can use in same manner as kubectl 
-- Server side with tiller, may soon be removed with Helm-3 [Helm-3 without tiller](https://helm.sh/blog/helm-3-preview-pt2/)
-- Manage Complexity, Complexity to provide different attributes to different services, repeatability and single point of authority 
+- Client-side only, Helm currently support command helm which users can use in the same manner as kubectl
+- Server-side with tiller, may soon be removed with Helm-3 [Helm-3 without tiller](https://helm.sh/blog/helm-3-preview-pt2/)
+- Manage Complexity, Complexity to provide different attributes to different services, repeatability and single point of authority
 - Easy Updates, Just one command to update the release
 - Simple Sharing, One can package an entire complex application which can be provided as a Chart
 - Rollbacks, Faster rollback with `helm rollback command` 
 
 
 # Java Springboot
-A lot of applications are built on top of JAVA's Springboot, a MVC framework designed for web applications and microservices architecture. It has a few components, 
+A lot of applications are built on top of JAVA’s Springboot, an MVC framework designed for web applications and microservices architecture. It has a few components, 
 1. An application.properties/.yaml file
 2. Compiled jar file 
 3. Other property files if any(Optional)
-All of these components have to be understood for management. One can use spring configuration servers as well to manage the configuration, however in this excercise we are going to focus on helm based approach to manage all the secrets. 
-# Helm approach (Stateless application)
-Now we want to deploy an application using helm package manager - one common questions is, what we need to do to achieve that? Let's answer it:
-1. Package the code using Dockerfile - Make sure that packaged code is environment agnostic, however it is not a requirement for Helm to work
-2. Define application.property/yaml file - See if one wants to manage it with helm, in my opinion SRE/DevOps teams prefer to keep it separate for different environments in different repository.
-3. Identify environment variables that needs to be injected into container
-4. Identify volumes(secret volume) that needs to be injected 
+All of these components have to be understood for management. One can use spring configuration servers as well to manage the configuration, however, in this exercise, we are going to focus on helm based approach to manage all the secrets.
+# Helm approach (Considering stateless application)
+Now we want to deploy an application using helm package manager - one common questions are, what we need to do to achieve that? Let’s answer it:
+1. Package the code using Dockerfile - Make sure that packaged code is environment agnostic, however, it is not a requirement for Helm to work
+2. Define application.property/yaml file - See if one wants to manage it with helm, in my opinion, SRE/DevOps teams prefer to keep it separate for different environments in a different repository
+3. Identify environment variables that need to be injected into a container
+4. Identify volumes(secret volume) that need to be injected
 
-Lets solve them one by one. How to containerise a Springboot application, This example is hoping that you are running this inside GitLab, however you can execute the same steps with Jenkins as well, 
+Let's solve them one by one. How to containerize a Springboot application, This example is hoping that you are running this inside GitLab, however, you can execute the same steps with Jenkins as well,
 
 ## 1. Package the code 
-I presume that you have your service name `my-boot-service` that you want to manage with Helm. I presume that one has some idea about Dockerfile since one is looking into solutions like Kubernetes and Helm. 
+I presume that you have your service name my-boot-service that you want to manage with Helm and you have some idea about Dockerfile since you are looking into solutions like Kubernetes and Helm.
 ```Dockerfile
 FROM openjdk:8u111-jdk-alpine
 ENV MAIN_OPTS '' 
@@ -38,16 +38,16 @@ ENTRYPOINT java $JAVA_OPTS -jar ./my-boot-service.jar $MAIN_OPTS
 EXPOSE 8080
 ```
 ## 2. Define application.properties/yaml
-In my example service has structure mentioned below. I would recommend to keep applications inside a root directory like: `namespace/<ENV>/<application_name>/config/<files>`. So SRE/Devops teams can clone additional repository whose content can be used to deploy these changes. 
+In my example service has the structure mentioned below. I would recommend to keep applications inside a root directory like:  `namespace/<ENV>/<application_name>/config/<files>`. So SRE/Devops teams can clone additional repository whose content can be used to deploy these changes. 
 
 ## 3. Identify environment variables
-One may need additional environment variable for the application to perform. Due to Kubernetes limitation that volume is immutable one can not keep the Jar from Step-1 and Configuration files from step-2 together. You need either script to copy files from immutable location or refer it in some manner. Springboot allows us to use `-Dspring.config.location=<location of application.properties>` as parameter in JAVA_OPTS. Identify any such parameters. 
+One may need additional environment variable for the application to perform. Due to Kubernetes limitation that volume is immutable one can not keep the Jar from Step-1 and Configuration files from step-2 together. You need either script to copy files from an immutable location or refer it in some manner. Springboot allows us to use `-Dspring.config.location=<location of application.properties>` as parameter in JAVA_OPTS. Identify any such parameters.
 
 ## 4. Identify volumes
-Since we are looking for stateless applications this is very generic. We need to copy these application.yaml/properties file from step-2 to certain volume location that can be mounted inside container. Same mounted file location can further be referred by Step-3 environment injections. Now lets move to complete example:
+Since we are looking for stateless applications this is very generic. We need to copy these application.yaml/properties file from step-2 to certain volume location that can be mounted inside the container. The same mounted file location can further be referred by Step-3 environment injections. Now, let us move to a complete example:
 
 # Templates:
-We have kept the complete thing in our github page [Helm-generic](https://github.com/shubhamitc/helm-generic-template). Feel free to fork it and make it better. Contributions are welcome. Template also deploys nginx-ingress controller and ingress mapping of it. 
+We have kept the complete example in our Github page [Helm-generic](https://github.com/shubhamitc/helm-generic-template). Feel free to fork it and make it better. Contributions are welcome.  The template also deploys Nginx-ingress controller and ingress mapping of it.
 ## namespace/<namespacename/ENV>/<application_name>/values.yaml 
 ```yml
 # Default values for mfpro-auth.
